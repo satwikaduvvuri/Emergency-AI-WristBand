@@ -1,0 +1,57 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f4f7fc;
+}
+
+.dashboard {
+  padding: 30px;
+}
+
+.title {
+  text-align: center;
+  color: #1565c0;
+  margin-bottom: 30px;
+}
+
+.cards {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.card {
+  flex: 1;
+  min-width: 300px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.card h2 {
+  color: #1565c0;
+}
+
+.card p {
+  font-size: 18px;
+  margin: 12px 0;
+}
+
+.sos-btn {
+  margin-top: 30px;
+  display: block;
+  width: 220px;
+  padding: 15px;
+  font-size: 20px;
+  font-weight: bold;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.sos-btn:hover {
+  background: darkred;
+}

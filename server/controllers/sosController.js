@@ -1,4 +1,5 @@
 const SOS = require("../models/sos");
+const sendEmail = require("../utils/sendEmail");
 
 // Send SOS
 const sendSOS = async (req, res) => {
@@ -9,11 +10,28 @@ const sendSOS = async (req, res) => {
       status: "Sent",
     });
 
+    // Send Email
+    await sendEmail(
+      process.env.EMAIL_USER,
+      "🚨 Emergency SOS Alert",
+      `
+🚨 Emergency Alert!
+
+A user has pressed the SOS button.
+
+Please check immediately.
+
+Emergency AI Wrist Band
+      `
+    );
+
     res.status(201).json({
       message: "🚨 SOS Sent Successfully",
       sos,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       message: error.message,
     });
@@ -23,7 +41,9 @@ const sendSOS = async (req, res) => {
 // Get SOS History
 const getSOSHistory = async (req, res) => {
   try {
-    const history = await SOS.find({ user: req.user.id }).sort({
+    const history = await SOS.find({
+      user: req.user.id,
+    }).sort({
       createdAt: -1,
     });
 

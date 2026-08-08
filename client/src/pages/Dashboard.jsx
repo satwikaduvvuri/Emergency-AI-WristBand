@@ -2,11 +2,25 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./Dashboard.css";
 
+import Navbar from "../components/Navbar";
+import UserCard from "../components/UserCard";
+import HealthCard from "../components/HealthCard";
+import LocationCard from "../components/LocationCard";
+import ContactCard from "../components/ContactCard";
+import SOSButton from "../components/SOSButton";
+import SOSHistory from "../components/SOSHistory";
+import AIHealthCard from "../components/AIHealthCard";
+
 function Dashboard() {
   const [user, setUser] = useState({});
   const [health, setHealth] = useState({});
   const [contacts, setContacts] = useState([]);
   const [sosHistory, setSOSHistory] = useState([]);
+
+  const [location, setLocation] = useState({
+    latitude: "",
+    longitude: "",
+  });
 
   const [contactData, setContactData] = useState({
     name: "",
@@ -19,9 +33,11 @@ function Dashboard() {
     fetchHealth();
     fetchContacts();
     fetchSOSHistory();
+    getLocation();
   }, []);
 
-  // Get User Profile
+  // ---------------- USER ----------------
+
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -36,22 +52,27 @@ function Dashboard() {
       );
 
       setUser(res.data);
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.log(err);
     }
   };
 
-  // Get Health Data
+  // ---------------- HEALTH ----------------
+
   const fetchHealth = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/health");
+      const res = await axios.get(
+        "http://localhost:5000/api/health"
+      );
+
       setHealth(res.data);
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.log(err);
     }
   };
 
-  // Get Contacts
+  // ---------------- CONTACTS ----------------
+
   const fetchContacts = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -66,32 +87,11 @@ function Dashboard() {
       );
 
       setContacts(res.data);
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.log(err);
     }
   };
 
-  // Get SOS History
-  const fetchSOSHistory = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await axios.get(
-        "http://localhost:5000/api/sos",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setSOSHistory(res.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  // Input Change
   const handleContactChange = (e) => {
     setContactData({
       ...contactData,
@@ -99,7 +99,6 @@ function Dashboard() {
     });
   };
 
-  // Add Contact
   const addContact = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -114,7 +113,7 @@ function Dashboard() {
         }
       );
 
-      alert("✅ Contact Added Successfully");
+      alert("✅ Contact Added");
 
       setContactData({
         name: "",
@@ -123,12 +122,31 @@ function Dashboard() {
       });
 
       fetchContacts();
-    } catch (error) {
-      alert(error.response?.data?.message || "Failed to add contact");
+    } catch (err) {
+      alert(err.response?.data?.message);
+    }
+  };
+    // ---------------- SOS ----------------
+
+  const fetchSOSHistory = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        "http://localhost:5000/api/sos",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setSOSHistory(res.data);
+    } catch (err) {
+      console.log(err);
     }
   };
 
-  // Send SOS
   const sendSOS = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -144,107 +162,62 @@ function Dashboard() {
       );
 
       alert(res.data.message);
-
       fetchSOSHistory();
-    } catch (error) {
-      alert(error.response?.data?.message || "Failed to Send SOS");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to send SOS");
     }
   };
 
+  // ---------------- LOCATION ----------------
+
+  const getLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  };
+
+  // ---------------- UI ----------------
+
   return (
     <div className="dashboard">
-      <h1 className="title">🚑 Emergency AI Wrist Band</h1>
+
+      <Navbar />
 
       <div className="cards">
-        <div className="card">
-          <h2>👤 User Details</h2>
 
-          <p><strong>Name:</strong> {user.name}</p>
-          <p><strong>Email:</strong> {user.email}</p>
-          <p><strong>Phone:</strong> {user.phone}</p>
-        </div>
+        <UserCard user={user} />
 
-        <div className="card">
-          <h2>❤️ Health Monitoring</h2>
+        <HealthCard health={health} />
+        <AIHealthCard health={health} />
 
-          <p>❤️ Heart Rate: {health.heartRate} BPM</p>
-          <p>🩸 SpO₂: {health.spo2}%</p>
-          <p>🌡 Temperature: {health.temperature} °C</p>
-          <p>🟢 Status: {health.status}</p>
-        </div>
+        <LocationCard location={location} />
+
       </div>
 
-      <div className="card">
-        <h2>📞 Emergency Contacts</h2>
+      <ContactCard
+        contacts={contacts}
+        contactData={contactData}
+        handleContactChange={handleContactChange}
+        addContact={addContact}
+      />
 
-        <input
-          type="text"
-          name="name"
-          placeholder="Contact Name"
-          value={contactData.name}
-          onChange={handleContactChange}
-        />
+      <SOSButton sendSOS={sendSOS} />
 
-        <br /><br />
+      <SOSHistory sosHistory={sosHistory} />
 
-        <input
-          type="text"
-          name="phone"
-          placeholder="Phone Number"
-          value={contactData.phone}
-          onChange={handleContactChange}
-        />
-
-        <br /><br />
-
-        <input
-          type="text"
-          name="relation"
-          placeholder="Relation"
-          value={contactData.relation}
-          onChange={handleContactChange}
-        />
-
-        <br /><br />
-
-        <button onClick={addContact}>➕ Add Contact</button>
-
-        <hr />
-
-        {contacts.length === 0 ? (
-          <p>No Contacts Added</p>
-        ) : (
-          contacts.map((contact) => (
-            <div key={contact._id}>
-              <h4>{contact.name}</h4>
-              <p>{contact.phone}</p>
-              <p>{contact.relation}</p>
-              <hr />
-            </div>
-          ))
-        )}
-      </div>
-
-      <button className="sos-btn" onClick={sendSOS}>
-        🚨 SEND SOS
-      </button>
-
-      <div className="card">
-        <h2>📜 SOS History</h2>
-
-        {sosHistory.length === 0 ? (
-          <p>No SOS History</p>
-        ) : (
-          sosHistory.map((item) => (
-            <div key={item._id}>
-              <p><strong>{item.message}</strong></p>
-              <p>Status: {item.status}</p>
-              <p>{new Date(item.createdAt).toLocaleString()}</p>
-              <hr />
-            </div>
-          ))
-        )}
-      </div>
     </div>
   );
 }

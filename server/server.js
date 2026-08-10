@@ -5,45 +5,56 @@ const dns = require("dns");
 
 dotenv.config();
 
-// DNS Fix
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
-// Database
 const connectDB = require("./config/db");
 
-// Routes
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const healthRoutes = require("./routes/healthRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const sosRoutes = require("./routes/sosRoutes");
-const aiRoutes = require("./routes/aiRoutes"); // ✅ NEW
-
-// Connect Database
-connectDB();
+const adminRoutes = require("./routes/adminRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Test Route
+// ================= HOME =================
+
 app.get("/", (req, res) => {
-  res.send("🚑 Emergency AI Wrist Band Backend Running...");
+  res.json({
+    message: "🚑 Emergency AI Wrist Band Backend Running...",
+  });
 });
 
-// API Routes
+// ================= ROUTES =================
+
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/health", healthRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/sos", sosRoutes);
-app.use("/api/ai", aiRoutes); // ✅ NEW
+app.use("/api/admin", adminRoutes);
+app.use("/api/ai", aiRoutes);
 
-// Server
+// ================= START SERVER =================
+
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Server startup failed:", error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
